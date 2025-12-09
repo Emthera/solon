@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://open-emr-standard.org/schemas/episode-oriented-record-v2.json",
+  "title": "Open Standard EMR (Solon Architecture) - Extended",
+  "description": "Episode-oriented schema with support for external tracking, medication regimens, and symptomatic experiments.",
+  "type": "object",
+  "required": ["episodes_of_care", "contacts", "clinical_entries"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "properties": {
+        "exchange_uuid": { "type": "string", "format": "uuid" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "source_doc_ref": { "type": "string", "description": "Link to original source (e.g. Google Doc)" }
+      }
+    },
+    "patient": {
+      "type": "object",
+      "properties": {
+        "patient_id": { "type": "string", "format": "uuid" },
+        "name": { "type": "string" }
+      }
+    },
+    "episodes_of_care": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["episode_uid", "title", "status"],
+        "properties": {
+          "episode_uid": { "type": "string", "format": "uuid" },
+          "title": { "type": "string", "description": "e.g., 'Heart Conductivity Issue'" },
+          "status": { "type": "string", "enum": ["active", "resolved", "dormant"] },
+          "external_resources": {
+            "type": "array",
+            "description": "Links to apps or monitoring tools (e.g., CareClinic).",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "url": { "type": "string", "format": "uri" },
+                "purpose": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "contacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["contact_uid", "date", "type"],
+        "properties": {
+          "contact_uid": { "type": "string", "format": "uuid" },
+          "date": { "type": "string", "format": "date-time" },
+          "type": { "type": "string", "enum": ["consultation", "procedure", "telehealth", "historical_import"] },
+          "provider": { "type": "string", "description": "e.g. 'Cardiologist', 'Chinese Practitioner'" },
+          "location": { "type": "string" }
+        }
+      }
+    },
+    "clinical_entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["entry_uid", "episode_uid", "contact_uid", "category", "data"],
+        "properties": {
+          "entry_uid": { "type": "string", "format": "uuid" },
+          "episode_uid": { "type": "string", "format": "uuid" },
+          "contact_uid": { "type": "string", "format": "uuid" },
+          "category": { 
+            "type": "string", 
+            "enum": ["medication", "examination", "experiment_observation", "procedure"] 
+          },
+          "data": {
+            "oneOf": [
+              {
+                "title": "Medication Data",
+                "required": ["drug_name", "start_date"],
+                "properties": {
+                  "drug_name": { "type": "string" },
+                  "start_date": { "type": "string", "format": "date" },
+                  "end_date": { "type": "string", "format": "date" },
+                  "dosage": { "type": "string" },
+                  "frequency": { 
+                    "type": "array", 
+                    "items": { "type": "string", "enum": ["morning", "evening", "night", "noon"] } 
+                  },
+                  "instructions": { "type": "string", "description": "e.g., 'With a meal', 'After Monodoks'" }
+                }
+              },
+              {
+                "title": "Examination/Procedure Data",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string", "description": "e.g., 'ECG', 'Coronography'" },
+                  "result_summary": { "type": "string" },
+                  "attachments": { "type": "array", "items": { "type": "string", "format": "uri" } }
+                }
+              },
+              {
+                "title": "Experiment/Observation Data",
+                "required": ["measure"],
+                "properties": {
+                  "measure": { "type": "string", "description": "e.g., 'Systolic Pressure', 'Excessive Yawning'" },
+                  "value": { "type": ["number", "string"] },
+                  "unit": { "type": "string" },
+                  "subjective_notes": { "type": "string" }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
