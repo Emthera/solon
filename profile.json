@@ -4,7 +4,7 @@
   "title": "Open Medical Profile",
   "description": "The master index for patient-sovereign health records.",
   "x-author": "Emthera / TheLazzziest",
-  "x-license": "CC-BY-4.0",
+  "x-license": "CC-BY-NC-SA-4.0",
   "type": "object",
   "required": ["profile"],
   "properties": {
