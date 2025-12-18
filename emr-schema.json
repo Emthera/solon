@@ -4,11 +4,11 @@
   "title": "Open Standard EMR (Solon Architecture) - Extended",
   "description": "Episode-oriented schema with support for external tracking, medication regimens, and symptomatic experiments.",
   "type": "object",
-  "required": ["meta", "patien", "clinical_entries"],
+  "required": ["profile"],
   "properties": {
     "profile": {
       "type": "object",
-      "required": ["meta", "tracks"],
+      "required": ["meta", "tracks", "tools", "history", "emergency_contacts"],
       "properties": {
         "meta": {
           "type": "object",
