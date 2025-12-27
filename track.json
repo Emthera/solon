@@ -263,7 +263,7 @@
             "description": "Food components for precise nutritional analysis. USDA FoodData Central can be used for reference",
             "items": {
               "type": "object",
-              "required": ["name", "fdc_id"],
+              "required": ["name", "id"],
               "properties": {
                 "name": { "type": "string" },
                 "id": { "type": "string", "description": "USDA FDC identifier for example or other id." },
