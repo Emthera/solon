@@ -103,6 +103,36 @@
               }
             }
           }
+        },
+      "provenance": {
+          "type": "object",
+          "description": "The digital 'stamp' verifying authenticity.",
+          "required": ["author_did", "signature_type", "signature_value", "timestamp"],
+          "properties": {
+            "author": {
+              "type": "string",
+              "description": "The Decentralized ID of the doctor signing this (e.g., did:solon:dr-hassan)."
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Exact moment of signing."
+            },
+            "signature_type": {
+              "type": "string",
+              "enum": ["JWS", "Ed25519Signature2020", "EcdsaSecp256k1Signature2019"],
+              "description": "The mathematical algorithm used for the stamp."
+            },
+            "signature_value": {
+              "type": "string",
+              "description": "The cryptographic hash (the 'stamp' itself)."
+            },
+            "legal_context": {
+              "type": "string",
+              "enum": ["informational", "eidas-qualified", "dea-epcs", "simple-electronic"],
+              "description": "Declares the legal weight of this signature."
+            }
+          }
         }
       }
     }
