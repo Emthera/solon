@@ -6,268 +6,274 @@
   "x-author": "Emthera / TheLazzziest",
   "x-license": "CC-BY-NC-SA-4.0",
   "type": "object",
-  "required": ["meta", "lineage", "symptoms", "protocols", "medications", "diet"],
+  "required": ["track"],
   "properties": {
-    "meta": {
+    "track": {
       "type": "object",
-      "required": ["track_id", "icd", "code"],
+      "required": ["meta", "lineage", "symptoms", "protocols", "medications", "diet"],
       "properties": {
-        "track_id": { "type": "string", "format": "uuid" },
-        "version": { "type": "string", "description": "The current version of the entire track manifest." },
-        "icd": { 
-          "type": "string", 
-          "format": "uri", 
-          "description": "URI to the ICD version/system used (e.g., http://id.who.int/icd/release/11/2024-01/mms)." 
+        "meta": {
+          "type": "object",
+          "required": ["track_id", "icd", "code"],
+          "properties": {
+            "track_id": { "type": "string", "format": "uuid" },
+            "version": { "type": "string", "description": "The current version of the entire track manifest." },
+            "icd": { 
+              "type": "string", 
+              "format": "uri", 
+              "description": "URI to the ICD version/system used (e.g., http://id.who.int/icd/release/11/2024-01/mms)." 
+            },
+            "code": { 
+              "type": "string", 
+              "description": "The specific alphanumeric code from the referenced ICD system (e.g., 7A00)." 
+            },
+            "display_name": { "type": "string" },
+            "status": { "type": "string", "enum": ["active", "closed", "branched"] }
+          }
         },
-        "code": { 
-          "type": "string", 
-          "description": "The specific alphanumeric code from the referenced ICD system (e.g., 7A00)." 
+        "lineage": {
+          "type": "object",
+          "properties": {
+            "parents": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["ref", "version"],
+                "properties": {
+                  "ref": { "type": "string", "format": "uri", "description": "Pointer to parent track." },
+                  "version": { "type": "string", "description": "The specific version label from the parent's rule_history from which this track branched." }
+                }
+              }
+            },
+            "branch_logic": { "type": "string", "description": "Reason for branching (e.g., suspected ATF insufficiency branching from Sleep Disorder)." }
+          }
         },
-        "display_name": { "type": "string" },
-        "status": { "type": "string", "enum": ["active", "closed", "branched"] }
-      }
-    },
-    "lineage": {
-      "type": "object",
-      "properties": {
-        "parents": {
+        "symptoms": {
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["ref", "version"],
+            "required": ["id", "label", "providers"],
             "properties": {
-              "ref": { "type": "string", "format": "uri", "description": "Pointer to parent track." },
-              "version": { "type": "string", "description": "The specific version label from the parent's rule_history from which this track branched." }
-            }
-          }
-        },
-        "branch_logic": { "type": "string", "description": "Reason for branching (e.g., suspected ATF insufficiency branching from Sleep Disorder)." }
-      }
-    },
-    "symptoms": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["id", "label", "providers"],
-        "properties": {
-          "id": { "type": "string", "description": "SNOMED-CT code or a custom UUID for vague symptoms." },
-          "label": { "type": "string", "description": "Human-readable name (e.g., 'Heart Palpitations')." },
-          "category": { "type": "string", "description": "e.g., Cardiac, Sleep, Gastric." },
-          "measurement_logic": {
-            "type": "object",
-            "properties": {
-              "scale": { "type": "string", "default": "1-10" },
-              "frequency": { "type": "string", "description": "e.g., 'Symptomatic', 'Daily'." },
-              "qualifiers": { "type": "array", "items": { "type": "string" }, "description": "e.g., 'Sharp', 'Dull', 'Constant'." }
-            }
-          },
-          "providers": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": ["provider_ref", "collectible_id"],
-              "properties": {
-                "provider_ref": { "type": "string", "format": "uri", "description": "Link to the tool in the Profile Root (e.g., Apple Watch, CareClinic)." },
-                "collectible_id": { "type": "string", "description": "The specific stream ID (e.g., 'hr_variability', 'ecg_waveform')." },
-                "observation_window": { "type": "string", "description": "Time buffer for analysis (e.g., '-2m/+5m')." }
-              }
-            }
-          }
-        }
-      }
-    },
-    "protocols": {
-      "type": "array",
-      "description": "Unified clinical orders for tests, examinations and other kinds of procedures",
-      "items": {
-        "type": "object",
-        "required": ["id", "label", "frequency", "expected_type"],
-        "properties": {
-          "id": { "type": "string", "description": "LOINC, SNOMED, or internal clinical ID." },
-          "label": { "type": "string", "description": "Human-readable name (e.g., 'Homocysteine' or 'X-ray')." },
-          "category": { "type": "string", "description": "e.g., 'Surgery', 'Laboratory', 'Rehabilitation'." },
-          "frequency": {
-            "type": "object",
-            "required": ["type"],
-            "oneOf": [
-              {
-                "properties": {
-                  "type": { "const": "event" },
-                  "trigger_id": { "type": "string", "description": "Optional Symptom ID." },
-                  "urgency": { "enum": ["routine", "urgent", "stat"] }
-                },
-                "required": ["urgency"]
-              },
-              {
-                "properties": {
-                  "type": { "const": "cron" },
-                  "cron": { "type": "string" },
-                  "validity_period": { "type": "string", "description": "ISO 8601 duration." }
-                },
-                "required": ["cron"]
-              },
-              {
-                "properties": {
-                  "type": { "const": "on_demand" },
-                  "instructions": { "type": "string" }
-                }
-              }
-            ]
-          },
-          "guidelines": {
-            "type": "array",
-            "description": "References to clinical guidelines or target standards.",
-            "items": {
-              "type": "object",
-              "properties": {
-                "ref": { 
-                  "type": "string", 
-                  "format": "uri", 
-                  "description": "URI to the specific guideline (e.g., NICE, Mayo Clinic, or WHO)." 
-                },
-                "interpretation": {
-                  "type": "string", 
-                  "description": "e.g., 'Normal Range', 'Optimal for Athletes', 'Cardiac Risk Threshold'." 
-                }
-              }
-            }
-          },
-          "physician": {
-            "type": "string",
-            "format": "uri",
-            "description": "URI to a physician's Profile (e.g., did:emthera:physician_id or a secure HTTPS profile link)."
-          },
-          "providers": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": ["provider_ref"],
-              "properties": {
-                "provider_ref": { "type": "string", "format": "uri" },
-                "specialist_role": { "type": "string" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "medications": {
-      "type": "array",
-      "description": "Prescribed pharmacological and supplemental interventions.",
-      "items": {
-        "type": "object",
-        "required": ["id", "label", "substance", "frequency", "route"],
-        "properties": {
-          "id": { 
-            "type": "string", 
-            "description": "RxNorm, RxCUI, or ATC code (e.g., 'C10AA' for Statins)." 
-          },
-          "label": { "type": "string", "description": "Human-readable name (e.g., 'Monodoks')." },
-          "substance": {
-            "type": "object",
-            "required": ["name", "dosage"],
-            "properties": {
-              "name": { "type": "string" },
-              "dosage": { "type": "string", "description": "e.g., '100mg', '2 capsules'." },
-              "form": { "type": "string", "description": "e.g., 'Tablet', 'Liquid', 'Powder'." }
-            }
-          },
-          "route": { 
-            "type": "string", 
-            "enum": ["oral", "intravenous", "topical", "sublingual", "intramuscular"],
-            "default": "oral"
-          },
-          "frequency": {
-            "type": "object",
-            "required": ["type"],
-            "oneOf": [
-              {
-                "properties": {
-                  "type": { "const": "cron" },
-                  "cron": { "type": "string", "description": "e.g., '0 8,20 * * *' for twice daily." },
-                  "duration": { "type": "string", "description": "ISO 8601 (e.g., 'P10D' for 10 days)." }
-                },
-                "required": ["cron"]
-              },
-              {
-                "properties": {
-                  "type": { "const": "event" },
-                  "trigger_id": { "type": "string", "description": "PRN / As needed trigger." }
-                },
-                "required": ["trigger_id"]
-              }
-            ]
-          },
-          "instructions": {
-            "type": "array",
-            "items": { "type": "string" },
-            "description": "e.g., 'Before meal', 'Do not take with dairy'."
-          }
-        }
-      }
-    },
-    "diet": {
-      "type": "array",
-      "description": "3-tier dietary architecture separating workflow, diet structure, and its components.",
-      "items": {
-        "type": "object",
-        "required": ["label", "workflow", "regime", "components"],
-        "properties": {
-          "label": { 
-            "type": "string", 
-            "description": "Human-readable name for the diet (e.g., 'Rice and Lemon Reset')." 
-          },
-          "workflow": {
-            "type": "object",
-            "description": "HL7 FHIR NutritionOrder alignment for timing and status.",
-            "required": ["fhir_resource", "status", "timing"],
-            "properties": {
-              "fhir_resource": { "type": "string", "const": "NutritionOrder" },
-              "status": { "type": "string", "enum": ["active", "on-hold", "completed", "cancelled"] },
-              "intent": { "type": "string", "default": "order" },
-              "timing": {
+              "id": { "type": "string", "description": "SNOMED-CT code or a custom UUID for vague symptoms." },
+              "label": { "type": "string", "description": "Human-readable name (e.g., 'Heart Palpitations')." },
+              "category": { "type": "string", "description": "e.g., Cardiac, Sleep, Gastric." },
+              "measurement_logic": {
                 "type": "object",
-                "description": "FHIR Timing data structure.",
                 "properties": {
-                  "repeat": {
-                    "type": "object",
-                    "properties": {
-                      "frequency": { "type": "integer" },
-                      "period": { "type": "number" },
-                      "periodUnit": { "enum": ["s", "min", "h", "d", "wk", "mo"] }
-                    }
+                  "scale": { "type": "string", "default": "1-10" },
+                  "frequency": { "type": "string", "description": "e.g., 'Symptomatic', 'Daily'." },
+                  "qualifiers": { "type": "array", "items": { "type": "string" }, "description": "e.g., 'Sharp', 'Dull', 'Constant'." }
+                }
+              },
+              "providers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["provider_ref", "collectible_id"],
+                  "properties": {
+                    "provider_ref": { "type": "string", "format": "uri", "description": "Link to the tool in the Profile Root (e.g., Apple Watch, CareClinic)." },
+                    "collectible_id": { "type": "string", "description": "The specific stream ID (e.g., 'hr_variability', 'ecg_waveform')." },
+                    "observation_window": { "type": "string", "description": "Time buffer for analysis (e.g., '-2m/+5m')." }
                   }
                 }
               }
             }
-          },
-          "regime": {
+          }
+        },
+        "protocols": {
+          "type": "array",
+          "description": "Unified clinical orders for tests, examinations and other kinds of procedures",
+          "items": {
             "type": "object",
-            "description": "SNOMED CT clinical taxonomy for the diet structure.",
-            "required": ["id"],
+            "required": ["id", "label", "frequency", "expected_type"],
+            "properties": {
+              "id": { "type": "string", "description": "LOINC, SNOMED, or internal clinical ID." },
+              "label": { "type": "string", "description": "Human-readable name (e.g., 'Homocysteine' or 'X-ray')." },
+              "category": { "type": "string", "description": "e.g., 'Surgery', 'Laboratory', 'Rehabilitation'." },
+              "frequency": {
+                "type": "object",
+                "required": ["type"],
+                "oneOf": [
+                  {
+                    "properties": {
+                      "type": { "const": "event" },
+                      "trigger_id": { "type": "string", "description": "Optional Symptom ID." },
+                      "urgency": { "enum": ["routine", "urgent", "stat"] }
+                    },
+                    "required": ["urgency"]
+                  },
+                  {
+                    "properties": {
+                      "type": { "const": "cron" },
+                      "cron": { "type": "string" },
+                      "validity_period": { "type": "string", "description": "ISO 8601 duration." }
+                    },
+                    "required": ["cron"]
+                  },
+                  {
+                    "properties": {
+                      "type": { "const": "on_demand" },
+                      "instructions": { "type": "string" }
+                    }
+                  }
+                ]
+              },
+              "guidelines": {
+                "type": "array",
+                "description": "References to clinical guidelines or target standards.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "ref": { 
+                      "type": "string", 
+                      "format": "uri", 
+                      "description": "URI to the specific guideline (e.g., NICE, Mayo Clinic, or WHO)." 
+                    },
+                    "interpretation": {
+                      "type": "string", 
+                      "description": "e.g., 'Normal Range', 'Optimal for Athletes', 'Cardiac Risk Threshold'." 
+                    }
+                  }
+                }
+              },
+              "physician": {
+                "type": "string",
+                "format": "uri",
+                "description": "URI to a physician's Profile (e.g., did:emthera:physician_id or a secure HTTPS profile link)."
+              },
+              "providers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["provider_ref"],
+                  "properties": {
+                    "provider_ref": { "type": "string", "format": "uri" },
+                    "specialist_role": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "medications": {
+          "type": "array",
+          "description": "Prescribed pharmacological and supplemental interventions.",
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "substance", "frequency", "route"],
             "properties": {
               "id": { 
                 "type": "string", 
-                "description": "The SNOMED CT code for the diet type (e.g., '225358003')." 
+                "description": "RxNorm, RxCUI, or ATC code (e.g., 'C10AA' for Statins)." 
               },
-              "description": { "type": "string" },
-              "modifiers": { 
-                "type": "array", 
+              "label": { "type": "string", "description": "Human-readable name (e.g., 'Monodoks')." },
+              "substance": {
+                "type": "object",
+                "required": ["name", "dosage"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "dosage": { "type": "string", "description": "e.g., '100mg', '2 capsules'." },
+                  "form": { "type": "string", "description": "e.g., 'Tablet', 'Liquid', 'Powder'." }
+                }
+              },
+              "route": { 
+                "type": "string", 
+                "enum": ["oral", "intravenous", "topical", "sublingual", "intramuscular"],
+                "default": "oral"
+              },
+              "frequency": {
+                "type": "object",
+                "required": ["type"],
+                "oneOf": [
+                  {
+                    "properties": {
+                      "type": { "const": "cron" },
+                      "cron": { "type": "string", "description": "e.g., '0 8,20 * * *' for twice daily." },
+                      "duration": { "type": "string", "description": "ISO 8601 (e.g., 'P10D' for 10 days)." }
+                    },
+                    "required": ["cron"]
+                  },
+                  {
+                    "properties": {
+                      "type": { "const": "event" },
+                      "trigger_id": { "type": "string", "description": "PRN / As needed trigger." }
+                    },
+                    "required": ["trigger_id"]
+                  }
+                ]
+              },
+              "instructions": {
+                "type": "array",
                 "items": { "type": "string" },
-                "description": "Exclusion rules (e.g., 'No Salt', 'No Oil')." 
+                "description": "e.g., 'Before meal', 'Do not take with dairy'."
               }
             }
-          },
-          "components": {
-            "type": "array",
-            "description": "Food components for precise nutritional analysis. USDA FoodData Central can be used for reference",
-            "items": {
-              "type": "object",
-              "required": ["name", "id"],
-              "properties": {
-                "name": { "type": "string" },
-                "id": { "type": "string", "description": "USDA FDC identifier for example or other id." },
-                "quantity": { "type": "string", "description": "e.g., '100g' or '1 unit'." }
+          }
+        },
+        "diet": {
+          "type": "array",
+          "description": "3-tier dietary architecture separating workflow, diet structure, and its components.",
+          "items": {
+            "type": "object",
+            "required": ["label", "workflow", "regime", "components"],
+            "properties": {
+              "label": { 
+                "type": "string", 
+                "description": "Human-readable name for the diet (e.g., 'Rice and Lemon Reset')." 
+              },
+              "workflow": {
+                "type": "object",
+                "description": "HL7 FHIR NutritionOrder alignment for timing and status.",
+                "required": ["fhir_resource", "status", "timing"],
+                "properties": {
+                  "fhir_resource": { "type": "string", "const": "NutritionOrder" },
+                  "status": { "type": "string", "enum": ["active", "on-hold", "completed", "cancelled"] },
+                  "intent": { "type": "string", "default": "order" },
+                  "timing": {
+                    "type": "object",
+                    "description": "FHIR Timing data structure.",
+                    "properties": {
+                      "repeat": {
+                        "type": "object",
+                        "properties": {
+                          "frequency": { "type": "integer" },
+                          "period": { "type": "number" },
+                          "periodUnit": { "enum": ["s", "min", "h", "d", "wk", "mo"] }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "regime": {
+                "type": "object",
+                "description": "SNOMED CT clinical taxonomy for the diet structure.",
+                "required": ["id"],
+                "properties": {
+                  "id": { 
+                    "type": "string", 
+                    "description": "The SNOMED CT code for the diet type (e.g., '225358003')." 
+                  },
+                  "description": { "type": "string" },
+                  "modifiers": { 
+                    "type": "array", 
+                    "items": { "type": "string" },
+                    "description": "Exclusion rules (e.g., 'No Salt', 'No Oil')." 
+                  }
+                }
+              },
+              "components": {
+                "type": "array",
+                "description": "Food components for precise nutritional analysis. USDA FoodData Central can be used for reference",
+                "items": {
+                  "type": "object",
+                  "required": ["name", "id"],
+                  "properties": {
+                    "name": { "type": "string" },
+                    "id": { "type": "string", "description": "USDA FDC identifier for example or other id." },
+                    "quantity": { "type": "string", "description": "e.g., '100g' or '1 unit'." }
+                  }
+                }
               }
             }
           }
