@@ -48,6 +48,50 @@
             "branch_logic": { "type": "string", "description": "Reason for branching (e.g., suspected ATF insufficiency branching from Sleep Disorder)." }
           }
         },
+        "notes": {
+          "type": "array",
+          "description": "References to external consultation notes or system annotations.",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "resource_uri",
+              "version",
+              "author",
+              "created_at"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Unique identifier for this reference entry."
+              },
+              "resource_uri": {
+                "type": "string",
+                "format": "uri",
+                "description": "The absolute URI or relative local path to the note file."
+              },
+              "version": {
+                "type": "string",
+                "description": "The version string of the note document."
+              },
+              "created_at": {
+                "type": "string",
+                "format": "datetime",
+                "description": "ISO 8601 timestamp."
+              },
+              "mime_type": {
+                "type": "string",
+                "description": "Optional media type (e.g., 'application/pdf')."
+              },
+              "author": {
+                "type": "string",
+                "format": "uri-reference",
+                "description": "A URI reference pointing to the author (e.g., 'https://emr.com/practitioners/123')."
+              }
+            }
+          }
+        },
         "symptoms": {
           "type": "array",
           "items": {
