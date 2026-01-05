@@ -204,12 +204,13 @@
           "description": "Prescribed pharmacological and supplemental interventions.",
           "items": {
             "type": "object",
-            "required": ["id", "label", "substance", "frequency", "route"],
+            "required": ["id", "provider", "label", "substance", "frequency", "route"],
             "properties": {
               "id": { 
                 "type": "string", 
                 "description": "RxNorm, RxCUI, or ATC code (e.g., 'C10AA' for Statins)." 
               },
+              "provider": { "type": "string", "description": "A reference system" },
               "label": { "type": "string", "description": "Human-readable name (e.g., 'Monodoks')." },
               "substance": {
                 "type": "object",
