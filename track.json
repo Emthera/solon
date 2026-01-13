@@ -101,7 +101,7 @@
               "id": { "type": "string", "description": "SNOMED-CT code or a custom UUID for vague symptoms." },
               "label": { "type": "string", "description": "Human-readable name (e.g., 'Heart Palpitations')." },
               "category": { "type": "string", "description": "e.g., Cardiac, Sleep, Gastric." },
-              "measurement_logic": {
+              "measurement": {
                 "type": "object",
                 "properties": {
                   "scale": { "type": "string", "default": "1-10" },
@@ -113,8 +113,13 @@
                 "type": "array",
                 "items": {
                   "type": "object",
-                  "required": ["provider_ref", "collectible_id"],
+                  "required": ["provider_type"],
                   "properties": {
+                    "provider_type": { 
+                      "type": "string", 
+                      "enum": ["auto", "manual"],
+                      "description": "Define a way of adding symptom samples to a database"
+                    },
                     "provider_ref": { "type": "string", "format": "uri", "description": "Link to the tool in the Profile Root (e.g., Apple Watch, CareClinic)." },
                     "collectible_id": { "type": "string", "description": "The specific stream ID (e.g., 'hr_variability', 'ecg_waveform')." },
                     "observation_window": { "type": "string", "description": "Time buffer for analysis (e.g., '-2m/+5m')." }
@@ -126,14 +131,14 @@
         },
         "protocols": {
           "type": "array",
-          "description": "Unified clinical orders for tests, examinations and other kinds of procedures",
+          "description": "Unified clinical orders for tests, examinations and other kinds of procedures. it can also contain external factors required to collect which can contribute to the patient's condition",
           "items": {
             "type": "object",
             "required": ["id", "label", "frequency", "expected_type"],
             "properties": {
               "id": { "type": "string", "description": "LOINC, SNOMED, or internal clinical ID." },
               "label": { "type": "string", "description": "Human-readable name (e.g., 'Homocysteine' or 'X-ray')." },
-              "category": { "type": "string", "description": "e.g., 'Surgery', 'Laboratory', 'Rehabilitation'." },
+              "category": { "type": "string", "description": "e.g., 'Surgery', 'Laboratory', 'Rehabilitation', Factor." },
               "frequency": {
                 "type": "object",
                 "required": ["type"],
