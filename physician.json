@@ -59,7 +59,7 @@
                     "type": "string",
                     "description": "A fluency level"
                   }
-                },
+                }
               }
             }
           }
