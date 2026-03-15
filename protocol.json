@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Solon Clinical Protocol",
+  "description": "A standalone medical blueprint defining tests, medications, diets, and context for a specific condition.",
+  "type": "object",
+  "required": ["meta"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "description": "Administrative metadata identifying the protocol's origin and version.",
+      "properties": {
+        "date": { "type": "string", "format": "date", "description": "The effective date or last revision date of this protocol." },
+        "display_name": { "type": "string", "description": "The title of the protocol shown to clinicians (e.g., 'Gastroenterology Protocol')." },
+        "author": { "type": "string", "description": "Reference path or URI to the physician's profile who authored this specific logic." },
+        "tags": { "type": "array", "items": { "type": "string" }, "description": "Keywords for indexing and filtering (e.g., 'gastroenterology', 'chronic')." }
+      }
+    },
+    "factors": {
+      "type": "array",
+      "description": "Registry of external variables (Altitude, Humidity) that provide context for patient data interpretation.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "description": "Unique identifier for the factor (e.g., 'env_humidity')." },
+          "label": { "type": "string", "description": "The name displayed in UI charts and reports." },
+          "spec_ref": { "type": "string", "description": "URI to the technical definition or LOINC reference for this factor." }
+        }
+      }
+    },
+    "symptoms": {
+      "type": "array",
+      "description": "A list of clinical symptoms the patient should track under this protocol.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "description": "SNOMED-CT code or internal UUID." },
+          "label": { "type": "string", "description": "Human-readable symptom name (e.g., 'Abdominal Bloating')." },
+          "input_type": { "type": "string", "enum": ["manual", "automated", "hybrid"], "description": "How the data is captured: by the patient (manual) or by a sensor (automated)." },
+          "influencing_factors": { 
+            "type": "array", 
+            "items": { "type": "string" }, 
+            "description": "IDs of 'factors' that may trigger or exacerbate this symptom." 
+          },
+          "manual_config": {
+            "type": "object",
+            "description": "Configuration for the UI input form if input_type is 'manual'.",
+            "properties": {
+              "ui_control": { "type": "string", "enum": ["slider", "scale", "binary", "text"] },
+              "options": { "type": "array", "items": { "type": "string" }, "description": "Labels for scale points or dropdown choices." }
+            }
+          }
+        }
+      }
+    },
+    "tests": {
+      "type": "array",
+      "description": "Diagnostic orders (Labs, Imaging) required by this protocol.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "description": "LOINC code or internal test ID." },
+          "label": { "type": "string" },
+          "provider": { "type": "string", "description": "The coding system used (e.g., 'LOINC', 'INTERNAL')." },
+          "category": { "type": "string", "description": "e.g., 'Imaging', 'Laboratory'." },
+          "frequency": {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string", "enum": ["event", "on_demand", "periodic"] },
+              "urgency": { "type": "string", "default": "routine" }
+            }
+          },
+          "expected_type": { "type": "string", "description": "The data format of the result (e.g., 'report', 'decimal')." }
+        }
+      }
+    },
+    "medications": {
+      "type": "array",
+      "description": "Pharmacological interventions prescribed in this protocol.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "description": "RxNorm or internal medication code." },
+          "label": { "type": "string", "description": "Brand name of the medication." },
+          "substance": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string", "description": "Generic substance name (e.g., 'Diosmin')." },
+              "dosage": { "type": "string", "description": "Strength per dose (e.g., '600mg')." }
+            }
+          },
+          "route": { "type": "string", "description": "Method of administration (e.g., 'oral', 'topical')." },
+          "frequency": {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string", "enum": ["cron", "prn", "once"] },
+              "cron": { "type": "string", "description": "Standard cron expression for scheduled doses." },
+              "text": { "type": "string", "description": "Human instructions (e.g., 'Apply locally, rest 15 min')." }
+            }
+          }
+        }
+      }
+    },
+    "diet": {
+      "type": "array",
+      "description": "Nutritional and hydration requirements.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": { "type": "string" },
+          "regime": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string", "description": "SNOMED code for the diet type." },
+              "label": { "type": "string" }
+            }
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "id": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
