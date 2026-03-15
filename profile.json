@@ -92,6 +92,7 @@
             "properties": {
               "name": { "type": "string", "description": "e.g., 'Hypertension'" },
               "type": { "type": "string", "description": "e.g., 'condition', 'surgery'" },
+              "status": { "type": "string", "description": "Reflects the status of the medical record" },
               "schema_refs": {
                 "type": "array",
                 "minItems": 1,
