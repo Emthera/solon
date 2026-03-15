@@ -28,7 +28,21 @@
               "description": "The specific alphanumeric code from the referenced ICD system (e.g., 7A00)." 
             },
             "display_name": { "type": "string" },
-            "status": { "type": "string", "enum": ["active", "closed", "branched"] }
+            "status": { "type": "string", "enum": ["active", "closed", "branched"] },
+            "diagnosis": {
+              "type": "object",
+              "required": ["type", "certainty"],
+              "properties": {
+                "type": { "type": "string" },
+                "certainty": { "type": "string" },
+                "differential": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
           }
         },
         "lineage": {
