@@ -15,43 +15,6 @@
         "tags": { "type": "array", "items": { "type": "string" }, "description": "Keywords for indexing and filtering (e.g., 'gastroenterology', 'chronic')." }
       }
     },
-    "factors": {
-      "type": "array",
-      "description": "Registry of external variables (Altitude, Humidity) that provide context for patient data interpretation.",
-      "items": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string", "description": "Unique identifier for the factor (e.g., 'env_humidity')." },
-          "label": { "type": "string", "description": "The name displayed in UI charts and reports." },
-          "spec_ref": { "type": "string", "description": "URI to the technical definition or LOINC reference for this factor." }
-        }
-      }
-    },
-    "symptoms": {
-      "type": "array",
-      "description": "A list of clinical symptoms the patient should track under this protocol.",
-      "items": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string", "description": "SNOMED-CT code or internal UUID." },
-          "label": { "type": "string", "description": "Human-readable symptom name (e.g., 'Abdominal Bloating')." },
-          "input_type": { "type": "string", "enum": ["manual", "automated", "hybrid"], "description": "How the data is captured: by the patient (manual) or by a sensor (automated)." },
-          "influencing_factors": { 
-            "type": "array", 
-            "items": { "type": "string" }, 
-            "description": "IDs of 'factors' that may trigger or exacerbate this symptom." 
-          },
-          "manual_config": {
-            "type": "object",
-            "description": "Configuration for the UI input form if input_type is 'manual'.",
-            "properties": {
-              "ui_control": { "type": "string", "enum": ["slider", "scale", "binary", "text"] },
-              "options": { "type": "array", "items": { "type": "string" }, "description": "Labels for scale points or dropdown choices." }
-            }
-          }
-        }
-      }
-    },
     "tests": {
       "type": "array",
       "description": "Diagnostic orders (Labs, Imaging) required by this protocol.",
@@ -75,26 +38,37 @@
     },
     "medications": {
       "type": "array",
-      "description": "Pharmacological interventions prescribed in this protocol.",
       "items": {
         "type": "object",
+        "required": ["id", "provider", "label", "substance", "route", "frequency"],
         "properties": {
-          "id": { "type": "string", "description": "RxNorm or internal medication code." },
-          "label": { "type": "string", "description": "Brand name of the medication." },
+          "id": { "type": "string", "description": "Primary code (e.g., ATC code M01AE17)." },
+          "provider": { "type": "string", "description": "System identifying the ID (e.g., ATC, RxNorm)." },
+          "label": { "type": "string", "description": "Full clinical name including concentration/form." },
           "substance": {
             "type": "object",
+            "required": ["name", "dosage"],
             "properties": {
-              "name": { "type": "string", "description": "Generic substance name (e.g., 'Diosmin')." },
-              "dosage": { "type": "string", "description": "Strength per dose (e.g., '600mg')." }
+              "name": { "type": "string", "description": "International Nonproprietary Name (INN)." },
+              "dosage": { "type": "string", "description": "e.g., 50mg, 10ml." },
+              "form": { "type": "string", "description": "e.g., solution, tablet, aerosol." }
             }
           },
-          "route": { "type": "string", "description": "Method of administration (e.g., 'oral', 'topical')." },
+          "route": {
+            "type": "object",
+            "required": ["type", "provider"],
+            "properties": {
+              "type": { "type": "string", "description": "Standardized route (e.g., intravenous)." },
+              "provider": { "type": "string", "description": "Authority for the term (e.g., EDQM, FDA)." }
+            }
+          },
           "frequency": {
             "type": "object",
+            "required": ["type"],
             "properties": {
-              "type": { "type": "string", "enum": ["cron", "prn", "once"] },
-              "cron": { "type": "string", "description": "Standard cron expression for scheduled doses." },
-              "text": { "type": "string", "description": "Human instructions (e.g., 'Apply locally, rest 15 min')." }
+              "type": { "type": "string", "enum": ["cron", "on_demand", "event"] },
+              "instructions": { "type": "string", "description": "Human-readable administration logic." },
+              "cron": { "type": "string" }
             }
           }
         }
