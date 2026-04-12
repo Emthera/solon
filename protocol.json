@@ -1,100 +1,141 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Solon Clinical Protocol",
-  "description": "A standalone medical blueprint defining tests, medications, diets, and context for a specific condition.",
+  "description": "A standalone medical blueprint defining tests, medications, diets, and lifestyle prescriptions.",
   "type": "object",
-  "required": ["meta"],
+  "required": ["protocol"],
   "properties": {
-    "meta": {
+    "protocol": {
       "type": "object",
-      "description": "Administrative metadata identifying the protocol's origin and version.",
+      "required": ["meta"],
       "properties": {
-        "date": { "type": "string", "format": "date", "description": "The effective date or last revision date of this protocol." },
-        "display_name": { "type": "string", "description": "The title of the protocol shown to clinicians (e.g., 'Gastroenterology Protocol')." },
-        "author": { "type": "string", "description": "Reference path or URI to the physician's profile who authored this specific logic." },
-        "tags": { "type": "array", "items": { "type": "string" }, "description": "Keywords for indexing and filtering (e.g., 'gastroenterology', 'chronic')." }
-      }
-    },
-    "tests": {
-      "type": "array",
-      "description": "Diagnostic orders (Labs, Imaging) required by this protocol.",
-      "items": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string", "description": "LOINC code or internal test ID." },
-          "label": { "type": "string" },
-          "provider": { "type": "string", "description": "The coding system used (e.g., 'LOINC', 'INTERNAL')." },
-          "category": { "type": "string", "description": "e.g., 'Imaging', 'Laboratory'." },
-          "frequency": {
+        "meta": {
+          "type": "object",
+          "description": "Administrative metadata identifying the protocol's origin and version.",
+          "required": ["display_name", "author"],
+          "properties": {
+            "date": { "type": "string", "format": "date", "description": "The effective date or last revision date of this protocol." },
+            "display_name": { "type": "string", "description": "The title shown to clinicians (e.g., 'Gastroenterology Protocol')." },
+            "author": { "type": "string", "description": "URI to the physician's profile or hospital entity." },
+            "tags": { "type": "array", "items": { "type": "string" }, "description": "Keywords like 'gastroenterology', 'lifestyle-medicine'." }
+          }
+        },
+        "tests": {
+          "type": "array",
+          "description": "Diagnostic orders (Labs, Imaging) required by this protocol.",
+          "items": {
             "type": "object",
+            "required": ["id", "provider", "label"],
             "properties": {
-              "type": { "type": "string", "enum": ["event", "on_demand", "periodic"] },
-              "urgency": { "type": "string", "default": "routine" }
-            }
-          },
-          "expected_type": { "type": "string", "description": "The data format of the result (e.g., 'report', 'decimal')." }
-        }
-      }
-    },
-    "medications": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["id", "provider", "label", "substance", "route", "frequency"],
-        "properties": {
-          "id": { "type": "string", "description": "Primary code (e.g., ATC code M01AE17)." },
-          "provider": { "type": "string", "description": "System identifying the ID (e.g., ATC, RxNorm)." },
-          "label": { "type": "string", "description": "Full clinical name including concentration/form." },
-          "substance": {
-            "type": "object",
-            "required": ["name", "dosage"],
-            "properties": {
-              "name": { "type": "string", "description": "International Nonproprietary Name (INN)." },
-              "dosage": { "type": "string", "description": "e.g., 50mg, 10ml." },
-              "form": { "type": "string", "description": "e.g., solution, tablet, aerosol." }
-            }
-          },
-          "route": {
-            "type": "object",
-            "required": ["type", "provider"],
-            "properties": {
-              "type": { "type": "string", "description": "Standardized route (e.g., intravenous)." },
-              "provider": { "type": "string", "description": "Authority for the term (e.g., EDQM, FDA)." }
-            }
-          },
-          "frequency": {
-            "type": "object",
-            "required": ["type"],
-            "properties": {
-              "type": { "type": "string", "enum": ["cron", "on_demand", "event"] },
-              "instructions": { "type": "string", "description": "Human-readable administration logic." },
-              "cron": { "type": "string" }
+              "id": { "type": "string", "description": "LOINC code or internal test ID." },
+              "label": { "type": "string" },
+              "provider": { "type": "string", "description": "e.g., 'LOINC', 'INTERNAL'." },
+              "category": { "type": "string", "description": "e.g., 'Imaging', 'Laboratory'." },
+              "frequency": {
+                "type": "object",
+                "properties": {
+                  "type": { "type": "string", "enum": ["event", "on_demand", "periodic"] },
+                  "urgency": { "type": "string", "default": "routine" }
+                }
+              },
+              "expected_type": { "type": "string", "description": "Result format (e.g., 'report', 'decimal')." }
             }
           }
-        }
-      }
-    },
-    "diet": {
-      "type": "array",
-      "description": "Nutritional and hydration requirements.",
-      "items": {
-        "type": "object",
-        "properties": {
-          "label": { "type": "string" },
-          "regime": {
+        },
+        "medications": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "provider", "label", "substance", "route", "frequency"],
+            "properties": {
+              "id": { "type": "string", "description": "ATC code (e.g., M01AE17)." },
+              "provider": { "type": "string", "description": "System identifying the ID (e.g., ATC, RxNorm)." },
+              "label": { "type": "string" },
+              "substance": {
+                "type": "object",
+                "required": ["name", "dosage"],
+                "properties": {
+                  "name": { "type": "string", "description": "International Nonproprietary Name (INN)." },
+                  "dosage": { "type": "string" },
+                  "form": { "type": "string", "description": "e.g., solution, tablet." }
+                }
+              },
+              "route": {
+                "type": "object",
+                "required": ["type", "provider"],
+                "properties": {
+                  "type": { "type": "string", "description": "Standardized route (e.g., intravenous)." },
+                  "provider": { "type": "string", "description": "Authority (e.g., EDQM)." }
+                }
+              },
+              "frequency": {
+                "type": "object",
+                "required": ["type"],
+                "properties": {
+                  "type": { "type": "string", "enum": ["cron", "on_demand", "event"] },
+                  "instructions": { "type": "string" },
+                  "cron": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "lifestyle": {
+          "type": "array",
+          "description": "Prescriptions for physical activity, sleep, or mindfulness based on FITT principles.",
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "frequency", "fitt_params"],
+            "properties": {
+              "id": { "type": "string", "description": "SNOMED-CT code (e.g., 312342009 for Jogging)." },
+              "label": { "type": "string", "description": "e.g., 'Morning Yoga', 'High Intensity Interval Training'." },
+              "provider": { "type": "string", "default": "SNOMED-CT" },
+              "category": { "type": "string", "enum": ["Aerobic", "Strength", "Flexibility", "Mindfulness", "Sleep"] },
+              "frequency": {
+                "type": "object",
+                "required": ["type"],
+                "properties": {
+                  "type": { "type": "string", "enum": ["cron", "on_demand", "event"] },
+                  "cron": { "type": "string", "description": "Standard cron expression (e.g., '0 7 * * 1-5' for weekday 7am)." },
+                  "instructions": { "type": "string", "description": "Human-readable timing (e.g., 'Three times a week before breakfast')." }
+                }
+              },
+              "fitt_params": {
+                "type": "object",
+                "required": ["frequency", "time"],
+                "properties": {
+                  "intensity": { "type": "string", "description": "How hard (e.g., 'Moderate', '75% Max HR')." },
+                  "time": { "type": "string", "description": "Duration (e.g., '30 mins')." },
+                  "type_detail": { "type": "string", "description": "Specific modality detail." }
+                }
+              },
+              "instructions": { "type": "string", "description": "Specific guidance for the activity." }
+            }
+          }
+        },
+        "diet": {
+          "type": "array",
+          "description": "Nutritional and hydration requirements.",
+          "items": {
             "type": "object",
             "properties": {
-              "id": { "type": "string", "description": "SNOMED code for the diet type." },
-              "label": { "type": "string" }
-            }
-          },
-          "components": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "name": { "type": "string" },
-                "id": { "type": "string" }
+              "label": { "type": "string" },
+              "regime": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "string", "description": "SNOMED code for the diet type." },
+                  "label": { "type": "string" }
+                }
+              },
+              "components": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "id": { "type": "string" }
+                  }
+                }
               }
             }
           }
