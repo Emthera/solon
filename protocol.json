@@ -46,7 +46,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["id", "provider", "label", "substance", "route", "frequency"],
+            "required": ["id", "provider", "label", "substance", "route", "frequency", "note", "status"],
             "properties": {
               "id": { "type": "string", "description": "ATC code (e.g., M01AE17)." },
               "provider": { "type": "string", "description": "System identifying the ID (e.g., ATC, RxNorm)." },
@@ -76,6 +76,22 @@
                   "instructions": { "type": "string" },
                   "cron": { "type": "string" }
                 }
+              },
+              "status": {
+                "type": "string",
+                "enum": ["active", "not_started", "under_review", "discontinued"],
+                "description": "Lifecycle status of a medication within a protocol.",
+                "enumDescriptions": {
+                  "prescribed": "A doctor prescribed the medication, but the course has been started yet",
+                  "under_review": "Being evaluated for continuation, modification, or discontinuation.",
+                  "active": "Currently being taken as prescribed.",
+                  "suspended": "The course is put on hold for some reasons",
+                  "discontinued": "Stopped — with reason documented in the note field."
+                }
+              },
+              "note": {
+                "type": "string",
+                "description": "A context explaining the details related to the medication or a patient"
               }
             }
           }
